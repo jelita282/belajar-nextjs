@@ -7,10 +7,18 @@ const FavoriteContext = createContext(undefined);
 export function FavoriteProvider({ children }) {
   const [favorites, setFavorites] = useState([]);
 
+  // ---> USEEFFECT YANG SUDAH DIGABUNG (DENGAN PENGAMAN) <---
   useEffect(() => {
     fetch("/api/favorites")
-      .then((res) => res.json())
-      .then(setFavorites);
+      .then((res) => {
+        // Cek dulu apakah respons API berhasil (status 200-299)
+        if (!res.ok) {
+           throw new Error(`Gagal mengambil data: Status ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(setFavorites)
+      .catch((error) => console.error("Error fetching favorites:", error)); 
   }, []);
 
   async function addFavorite(user) {
@@ -22,7 +30,11 @@ export function FavoriteProvider({ children }) {
 
     if (res.ok) {
       const saved = await res.json();
-      setFavorites((prev) => [...prev, saved]);
+      // Tambahkan baris ini untuk membongkar bungkusan data dari API
+      const userData = saved.data ? saved.data : saved; 
+      
+      // Masukkan userData yang sudah bersih ke dalam state
+      setFavorites((prev) => [...prev, userData]);
     }
   }
 

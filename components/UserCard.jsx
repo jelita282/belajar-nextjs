@@ -1,8 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
+import { Button, buttonVariants } from "@/components/ui/button";
+import { useFavorite } from "@/context/FavoriteContext";
+import { cn } from "@/lib/utils";
 
 import {
   Card,
@@ -11,11 +13,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-// Import custom hook dari FavoriteContext
-import { useFavorite } from "@/context/FavoriteContext";
-
 export default function UserCard({ user }) {
-  const { toggleFavorite, isFavorite } = useFavorite();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorite();
   const favorited = isFavorite(user.id);
 
   const initials = user.name
@@ -26,37 +25,42 @@ export default function UserCard({ user }) {
     .toUpperCase();
 
   return (
-    <Card className="group border border-emerald-100 bg-white transition-all hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-900/10">
+    <Card className="group border border-white/10 bg-foreground/[0.03] transition-all hover:-translate-y-1 hover:border-foreground/20 hover:shadow-xl hover:shadow-black/20">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 text-sm font-semibold">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/40 to-primary/10 text-sm font-semibold">
             {initials}
           </div>
-          <CardTitle className="text-emerald-950">{user.name}</CardTitle>
+          <CardTitle>{user.name}</CardTitle>
         </div>
       </CardHeader>
 
       <CardContent>
-        <p className="text-sm text-emerald-900/70">{user.email}</p>
+        <p className="text-sm text-muted-foreground">{user.email}</p>
 
-        <p className="mt-1 text-sm text-emerald-900/70">
+        <p className="mt-1 text-sm text-muted-foreground">
           {user.company.name}
         </p>
 
-        {/* 📍 PERBAIKAN: Dibungkus dengan flex agar sejajar */}
-        <div className="mt-6 flex w-full items-center gap-2">
-          {/* flex-1 membuat tombol ini mengisi sisa ruang yang ada */}
-          <Link href={`/users/${user.id}`} className="flex-1">
-           <Button className="w-full rounded-full">View Profile</Button>
-          </Link>
-          
-          {/* shrink-0 memastikan tombol favorite ukurannya pas dengan teks/icon */}
-          <Button
-            variant={favorited ? "default" : "outline"}
-            onClick={() => toggleFavorite(user)}
-            className="shrink-0 rounded-full flex items-center justify-center gap-2"
+        <div className="mt-4 flex gap-2">
+          <a
+            href={`https://jsonplaceholder.typicode.com/users/${user.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(buttonVariants(), "flex-1 rounded-full")}
           >
-            <Heart className={`size-4 ${favorited ? "fill-current" : ""}`} />
+            View Profile
+          </a>
+
+          <Button
+            variant={favorited ? "secondary" : "outline"}
+            className="rounded-full"
+            aria-pressed={favorited}
+            onClick={() =>
+              favorited ? removeFavorite(user.id) : addFavorite(user)
+            }
+          >
+            <Heart className={favorited ? "fill-red-500 text-red-500" : ""} />
             {favorited ? "Favourite" : "Add Favourite"}
           </Button>
         </div>
