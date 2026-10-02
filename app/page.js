@@ -1,69 +1,138 @@
-import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Code2, Palette, Sparkles, Users2 } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+const features = [
+  {
+    icon: Code2,
+    title: "Mau pinjam",
+    description:
+      "Cek biaya nyata, pahami risikonya, dan lihat alternatif sebelum tanda tangan.",
+  },
+  {
+    icon: Palette,
+    title: "Sudah terjerat",
+    description:
+      "Pahami kondisi, cari solusi, dan dapatkan langkah yang bisa kamu lakukan.",
+  },
+  {
+    icon: Users2,
+    title: "Bingung mulai dari mana",
+    description:
+      "Ceritakan situasimu, AI akan membantu mengarahkan langkah selanjutnya.",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <>
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid bg-radial-fade" />
+        <div className="absolute top-1/2 left-1/2 -z-10 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[120px]" />
+        <div className="animate-blob absolute top-24 left-10 -z-10 h-64 w-64 rounded-full bg-blue-500/20 blur-[100px]" />
+        <div className="animate-blob absolute top-40 right-10 -z-10 h-64 w-64 rounded-full bg-purple-500/20 blur-[100px] [animation-delay:4s]" />
+
+        <div className="mx-auto max-w-6xl px-6 py-28 md:py-36">
+          <div className="animate-fade-up mx-auto max-w-3xl text-center">
+            <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-foreground/5 px-4 py-1.5 text-sm text-muted-foreground">
+              <Sparkles className="size-3.5" />
+              Lebih Pintar • Lebih Bijak
+            </div>
+
+            <h1 className="text-gradient text-4xl font-bold tracking-tight md:text-6xl">
+              Saat Butuh Dana, <br></br>Jangan Terburu-buru Meminjam.
+            </h1>
+
+            <p className="mt-6 text-lg leading-8 text-muted-foreground">
+              Bekali diri dengan Literasi Finansial, Pahami pilihanmu sebelum terjebak.
+            </p>
+
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/services"
+                className={cn(buttonVariants({ size: "lg" }), "rounded-full px-6 shadow-lg shadow-primary/20")}
+              >
+                Mulai EduPuan
+                <ArrowRight className="size-4" />
+              </Link>
+
+              <Link
+                href="/contact"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "lg" }),
+                  "rounded-full px-6"
+                )}
+              >
+                Mengapa EduPuan?
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+            Mulai dari sini
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            Apa yang paling sesuai dengan kondisimu sekarang?
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {features.map(({ icon: Icon, title, description }) => (
+            <Card
+              key={title}
+              className="group border border-white/10 bg-foreground/[0.03] transition-all hover:-translate-y-1 hover:border-foreground/20 hover:shadow-xl hover:shadow-black/20"
+            >
+              <CardHeader>
+                <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                  <Icon className="size-5" />
+                </div>
+                <CardTitle className="text-base">{title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{description}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 pb-24">
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-foreground/[0.03] px-8 py-14 text-center">
+          <div className="bg-grid bg-radial-fade absolute inset-0 opacity-60" />
+
+          <div className="relative">
+            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+              Ada yang sedang kamu pikirkan?
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+              Ceritakan saja pada Tanya Puan AI, ia akan membantumu mengarahkan ke pilihan yang tepat.
+            </p>
+
+            <Link
+              href="/contact"
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "mt-8 rounded-full px-6"
+              )}
+            >
+              Tanya Puan AI
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
