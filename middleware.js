@@ -1,38 +1,39 @@
-// 1. Impor hanya SEKALI di paling atas file
 import { NextResponse } from "next/server";
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // -------------------------------------------------------------------------------------//
-  // Latihan 3. Maintenance Mode
-  // -------------------------------------------------------------------------------------//
-  // Membersihkan spasi atau karakter tersembunyi dari .env.local
-  const isMaintenance = String(process.env.MAINTENANCE_MODE || "").trim().toLowerCase() === "true";
-  
-  const isMaintenancePage = pathname === "/maintenance" || pathname.startsWith("/maintenance/");
-  
-  // Kecualikan file statis Next.js, API, dan favicon agar aset gambar/CSS tidak terblokir
+  // 1. Definisikan jalur-jalur yang perlu dikecualikan
   const isStaticFile = 
     pathname.startsWith("/_next") || 
     pathname === "/favicon.ico" || 
     pathname.includes(".");
+    
+  // 📍 TAMBAHAN: Kita harus tahu apakah ini jalur API atau bukan
+  const isApi = pathname.startsWith("/api"); 
+  
+  const isMaintenancePage = pathname.startsWith("/maintenance");
+  
+  // -------------------------------------------------------------------------------------//
+  // Maintenance Mode
+  // -------------------------------------------------------------------------------------//
+  const isMaintenance = String(process.env.MAINTENANCE_MODE || "").trim().toLowerCase() === "true";
 
-  // LOGIKA: Jika MAINTENANCE_MODE=true DAN user BUKAN di halaman /maintenance DAN BUKAN file statis
-  if (isMaintenance && !isMaintenancePage && !isStaticFile) {
+  // LOGIKA: Jika maintenance aktif, bukan halaman maintenance, bukan file statis, DAN BUKAN API
+  if (isMaintenance && !isMaintenancePage && !isStaticFile && !isApi) {
     return NextResponse.redirect(new URL("/maintenance", request.url));
   }
 
   // -------------------------------------------------------------------------------------//
-  // Latihan 1. Logger (Untuk request ke /api/...)
+  // Logger (Untuk request ke /api/...)
   // -------------------------------------------------------------------------------------//
-  if (pathname.startsWith("/api")) {
+  if (isApi) {
     const waktu = new Date().toISOString();
     console.log(`[${waktu}] ${request.method} ${pathname}`);
   }
 
   // -------------------------------------------------------------------------------------//
-  // Latihan 2. Auth Guard Menggunakan Cookie (Untuk halaman /favorites)
+  // Auth Guard Menggunakan Cookie (Untuk halaman /favorites)
   // -------------------------------------------------------------------------------------//
   if (pathname.startsWith("/favorites")) {
     const token = request.cookies.get("token");
@@ -47,15 +48,8 @@ export function middleware(request) {
   return NextResponse.next();
 }
 
-// 2. Gunakan Matcher Regex Tunggal yang Mencakup Seluruh Halaman
 export const config = {
   matcher: [
-    /*
-     * Match semua request KECUALI:
-     * - _next/static (file statis)
-     * - _next/image (optimasi gambar)
-     * - favicon.ico (ikon browser)
-     */
     "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };

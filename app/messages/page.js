@@ -18,7 +18,7 @@ export default function MessagesPage() {
                 <p className="mt-1 text-sm text-muted-foreground">{msg.message}</p>
               </div>
 
-              {/* Form untuk memanggil Server Action[cite: 14] */}
+              {/* Form untuk memanggil Server Action*/}
               <form action={deleteMessageAction.bind(null, msg.id)}>
                 <button
                   type="submit"
