@@ -1,17 +1,26 @@
 "use server";
 
-import { messages } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 
-export async function deleteMessageAction(id) {
-  // 1. Mencari posisi (index) pesan berdasarkan ID-nya
-  const index = messages.findIndex((msg) => msg.id === id);
+// Ubah parameter menjadi formData
+export async function deleteMessageAction(formData) {
+  //ekstrak ID dari formData
+  const id = formData.get("id");
 
-  if (index !== -1) {
-    // 2. Menghapus data dari array db.js
-    messages.splice(index, 1);
-    
-    // 3. Memerintahkan Next.js untuk memuat ulang halaman secara otomatis
-    revalidatePath("/messages");
+ if (!id) return;
+
+  // Hapus data secara permanen dari Supabase
+  const { error } = await supabase
+    .from("messages")
+    .delete()
+    .eq("id", id); // Hapus baris di mana kolom 'id' sama dengan id dari form
+
+  if (error) {
+    console.error("Gagal menghapus pesan:", error.message);
+    return;
   }
+  
+  // Muat ulang halaman agar UI ter-update
+  revalidatePath("/messages");
 }
