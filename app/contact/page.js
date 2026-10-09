@@ -7,7 +7,7 @@ import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import {submitContactForm} from "./actions";
+import { submitContactForm } from "./actions";
 
 const contactInfo = [
   { icon: Mail, label: "Email", value: "admin@edupuan.com" },
@@ -28,21 +28,27 @@ export default function Contact() {
   } = useUser();
 
   async function handleSubmit(event) {
-  event.preventDefault();
+    event.preventDefault();
 
-  const formData = new FormData();
-  formData.append("name", name);
-  formData.append("email", email);
-  formData.append("message", message);
+    try {
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("message", message);
 
-  const result = await submitContactForm(formData);
+      const result = await submitContactForm(formData);
 
-  if (result.success) {
-    setSubmitted(true);
-  } else {
-    alert(result.error);
+      // Tambahkan pengamanan: pastikan result ada dan success bernilai true
+      if (result && result.success) {
+        setSubmitted(true);
+      } else {
+        alert(result?.error || "Gagal mengirim pesan. Silakan periksa koneksi atau coba lagi.");
+      }
+    } catch (error) {
+      console.error("Error submit form:", error);
+      alert("Terjadi kesalahan sistem. Pesan tidak terkirim.");
+    }
   }
-}
 
   return (
     <section className="relative">
@@ -158,14 +164,14 @@ export default function Contact() {
                   >
                     Kirim Pesan
                   </Button>
-                  </form>
+                </form>
               )}
 
-                  <div className="mt-6 rounded-lg bg-muted p-4">
-                    <p>Name: {name}</p>
-                    <p>Email: {email}</p>
-                    <p>Message: {message}</p>
-                  </div>
+              <div className="mt-6 rounded-lg bg-muted p-4">
+                <p>Name: {name}</p>
+                <p>Email: {email}</p>
+                <p>Message: {message}</p>
+              </div>
             </CardContent>
           </Card>
         </div>

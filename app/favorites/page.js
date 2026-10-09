@@ -24,19 +24,24 @@ export default function FavoritesPage() {
           </p>
         </div>
 
-        {favorites.length > 0 ? (
+        {favorites && favorites.length > 0 ? (
           <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {favorites.map((favorite) => (
-              <UserCard
-                key={favorite.id}
-                user={{
-                  id: favorite.app_users.id,
-                  name: favorite.app_users.name,
-                  email: favorite.app_users.email,
-                  company: { name: favorite.app_users.company_name },
-                }}
-              />
-            ))}
+            {favorites.map((favorite) => {
+              // Amankan data app_users agar tidak menyebabkan "undefined is not an object" error
+              const appUser = favorite?.app_users || {};
+
+              return (
+                <UserCard
+                  key={favorite?.id || Math.random()}
+                  user={{
+                    id: appUser?.id || "N/A",
+                    name: appUser?.name || "User Tidak Diketahui",
+                    email: appUser?.email || "Tidak ada email",
+                    company: { name: appUser?.company_name || "-" },
+                  }}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="mt-16 flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
