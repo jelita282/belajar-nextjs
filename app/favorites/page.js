@@ -27,17 +27,21 @@ export default function FavoritesPage() {
         {favorites && favorites.length > 0 ? (
           <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {favorites.map((favorite) => {
-              // Amankan data app_users agar tidak menyebabkan "undefined is not an object" error
-              const appUser = favorite?.app_users || {};
+              // PENGECEKAN CERDAS:
+              // Menyesuaikan otomatis jika data berasal dari relasi join (app_users/users)
+              // ataupun data array langsung dari API.
+              const userData = favorite?.app_users || favorite?.users || favorite;
 
               return (
                 <UserCard
-                  key={favorite?.id || Math.random()}
+                  key={userData?.id || favorite?.id || Math.random()}
                   user={{
-                    id: appUser?.id || "N/A",
-                    name: appUser?.name || "User Tidak Diketahui",
-                    email: appUser?.email || "Tidak ada email",
-                    company: { name: appUser?.company_name || "-" },
+                    id: userData?.id || favorite?.user_id || "N/A",
+                    name: userData?.name || "User Tidak Diketahui",
+                    email: userData?.email || "Tidak ada email",
+                    company: { 
+                      name: userData?.company?.name || userData?.company_name || "-" 
+                    },
                   }}
                 />
               );
