@@ -3,15 +3,13 @@ import { NextResponse } from "next/server";
 export function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // 1. Definisikan jalur-jalur yang perlu dikecualikan
+  // 1. Definisikan jalur statis, API, dan maintenance
   const isStaticFile = 
     pathname.startsWith("/_next") || 
     pathname === "/favicon.ico" || 
     pathname.includes(".");
     
-  // 📍 TAMBAHAN: Kita harus tahu apakah ini jalur API atau bukan
   const isApi = pathname.startsWith("/api"); 
-  
   const isMaintenancePage = pathname.startsWith("/maintenance");
   
   // -------------------------------------------------------------------------------------//
@@ -19,13 +17,12 @@ export function middleware(request) {
   // -------------------------------------------------------------------------------------//
   const isMaintenance = String(process.env.MAINTENANCE_MODE || "").trim().toLowerCase() === "true";
 
-  // LOGIKA: Jika maintenance aktif, bukan halaman maintenance, bukan file statis, DAN BUKAN API
   if (isMaintenance && !isMaintenancePage && !isStaticFile && !isApi) {
     return NextResponse.redirect(new URL("/maintenance", request.url));
   }
 
   // -------------------------------------------------------------------------------------//
-  // Logger (Untuk request ke /api/...)
+  // Logger untuk API
   // -------------------------------------------------------------------------------------//
   if (isApi) {
     const waktu = new Date().toISOString();
@@ -33,18 +30,24 @@ export function middleware(request) {
   }
 
   // -------------------------------------------------------------------------------------//
-  // Auth Guard Menggunakan Cookie (Untuk halaman /favorites)
+  // Auth Guard Khusus Halaman /favorites
   // -------------------------------------------------------------------------------------//
-  *if (pathname.startsWith("/maintenance")) {
-    const token = request.cookies.get("token");
+  if (pathname.startsWith("/favorites")) {
+    // Cek cookie custom "token" ATAU cookie session bawaan dari Supabase Auth
+    const customToken = request.cookies.get("token")?.value;
+    const hasSupabaseCookie = request.cookies.getAll().some((cookie) =>
+      cookie.name.includes("sb-") && cookie.name.includes("-auth-token")
+    );
 
-    if (!token) {
-      // Belum ada tanda login -> lempar ke halaman utama
-      return NextResponse.redirect(new URL("/", request.url));
+    const isAuthenticated = Boolean(customToken || hasSupabaseCookie);
+
+    if (!isAuthenticated) {
+      // Jika belum login, alihkan ke halaman login
+      return NextResponse.redirect(new URL("/login", request.url));
     }
   }
 
-  // Lanjutkan request jika semua kondisi di atas lolos
+  // Lanjutkan request jika semua kondisi aman
   return NextResponse.next();
 }
 
