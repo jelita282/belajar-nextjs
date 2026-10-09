@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const supabase = await createClient();
 
-    // 📍 INI KUNCI UTAMANYA: Tambahkan relasi ke app_users
+    // Mengambil data favorites DAN menggabungkannya dengan data detail di app_users
     const { data, error } = await supabase
       .from("favorites")
       .select("*, app_users(*)"); 
@@ -21,4 +21,4 @@ export async function GET() {
   }
 }
 
-// (Biarkan fungsi POST() di bawahnya tetap seperti aslinya, jangan dihapus)
+// Catatan: Jika ada fungsi POST() di bawahnya, biarkan saja (jangan ikut dihapus).

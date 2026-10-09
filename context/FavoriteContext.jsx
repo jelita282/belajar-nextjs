@@ -10,18 +10,26 @@ export function FavoriteProvider({ children }) {
   const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
+    let isMounted = true;
+
     if (!isLoggedIn) {
-      setFavorites([]);
-      return;
+      // Solusi ESLint: Menunda pemanggilan setState ke akhir antrean eksekusi
+      // agar tidak memicu render beruntun (cascading renders) yang dilarang React.
+      const timeoutId = setTimeout(() => {
+        if (isMounted) setFavorites([]);
+      }, 0);
+      return () => {
+        clearTimeout(timeoutId);
+        isMounted = false;
+      };
     }
 
-    // Dibungkus dalam fungsi async agar terhindar dari error ESLint
     const loadFavorites = async () => {
       try {
         const res = await fetch("/api/favorites");
         if (res.ok) {
           const data = await res.json();
-          setFavorites(data);
+          if (isMounted) setFavorites(data);
         }
       } catch (error) {
         console.error("Gagal mengambil data favorites:", error);
@@ -29,6 +37,10 @@ export function FavoriteProvider({ children }) {
     };
 
     loadFavorites();
+
+    return () => {
+      isMounted = false;
+    };
   }, [isLoggedIn]);
 
   async function addFavorite(user) {
@@ -37,35 +49,41 @@ export function FavoriteProvider({ children }) {
       return;
     }
 
-    const res = await fetch("/api/favorites", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: user.id }),
-    });
+    try {
+      const res = await fetch("/api/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id }),
+      });
 
-    if (res.ok) {
-      const saved = await res.json();
-      
-      // Tambahan cerdas: Gabungkan data profil lokal agar saat baru diklik, 
-      // halaman tidak menampilkan "User Tidak Diketahui" sebelum di-refresh.
-      const newFavorite = {
-        ...saved,
-        app_users: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          company_name: user.company?.name || "",
-        }
-      };
-      setFavorites((prev) => [...prev, newFavorite]);
+      if (res.ok) {
+        const saved = await res.json();
+        
+        // Membentuk struktur data yang sama persis dengan kembalian dari Supabase
+        const newFavorite = {
+          ...saved,
+          app_users: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            company_name: user.company?.name || user.company_name || "-",
+          }
+        };
+        setFavorites((prev) => [...prev, newFavorite]);
+      }
+    } catch (error) {
+      console.error("Gagal menambah favorite:", error);
     }
   }
 
   async function removeFavorite(userId) {
-    const res = await fetch(`/api/favorites/${userId}`, { method: "DELETE" });
-
-    if (res.ok) {
-      setFavorites((prev) => prev.filter((f) => f.user_id !== userId));
+    try {
+      const res = await fetch(`/api/favorites/${userId}`, { method: "DELETE" });
+      if (res.ok) {
+        setFavorites((prev) => prev.filter((f) => f.user_id !== userId));
+      }
+    } catch (error) {
+      console.error("Gagal menghapus favorite:", error);
     }
   }
 
