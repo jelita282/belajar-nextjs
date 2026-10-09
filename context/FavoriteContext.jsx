@@ -1,40 +1,40 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const FavoriteContext = createContext(undefined);
 
 export function FavoriteProvider({ children }) {
+  const { isLoggedIn } = useAuth();
   const [favorites, setFavorites] = useState([]);
 
-  // ---> USEEFFECT YANG SUDAH DIGABUNG (DENGAN PENGAMAN) <---
   useEffect(() => {
+    if (!isLoggedIn) {
+      setFavorites([]);
+      return;
+    }
+
     fetch("/api/favorites")
-      .then((res) => {
-        // Cek dulu apakah respons API berhasil (status 200-299)
-        if (!res.ok) {
-           throw new Error(`Gagal mengambil data: Status ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(setFavorites)
-      .catch((error) => console.error("Error fetching favorites:", error)); 
-  }, []);
+      .then((res) => (res.ok ? res.json() : []))
+      .then(setFavorites);
+  }, [isLoggedIn]);
 
   async function addFavorite(user) {
+    if (!isLoggedIn) {
+      alert("Silakan login terlebih dahulu untuk menambahkan favorite.");
+      return;
+    }
+
     const res = await fetch("/api/favorites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(user),
+      body: JSON.stringify({ user_id: user.id }),
     });
 
     if (res.ok) {
       const saved = await res.json();
-      // Tambahkan baris ini untuk membongkar bungkusan data dari API
-      const userData = saved.data ? saved.data : saved; 
-      
-      // Masukkan userData yang sudah bersih ke dalam state
-      setFavorites((prev) => [...prev, userData]);
+      setFavorites((prev) => [...prev, saved]);
     }
   }
 
@@ -42,12 +42,12 @@ export function FavoriteProvider({ children }) {
     const res = await fetch(`/api/favorites/${userId}`, { method: "DELETE" });
 
     if (res.ok) {
-      setFavorites((prev) => prev.filter((f) => f.id !== userId));
+      setFavorites((prev) => prev.filter((f) => f.user_id !== userId));
     }
   }
 
   function isFavorite(userId) {
-    return favorites.some((f) => f.id === userId);
+    return favorites.some((f) => f.user_id === userId);
   }
 
   const value = { favorites, addFavorite, removeFavorite, isFavorite };
