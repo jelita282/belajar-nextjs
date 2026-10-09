@@ -1,11 +1,12 @@
+import { UserProvider } from "@/context/UserContext";
 import "./globals.css";
-
 import localFont from "next/font/local";
-
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { AuthProvider } from "@/context/AuthContext";
 import { FavoriteProvider } from "@/context/FavoriteContext";
+
+// Import Supabase untuk menangani auth di sisi server
 import { createClient } from "@/lib/supabase/server";
 
 const fontSans = localFont({
@@ -42,15 +43,18 @@ export default async function RootLayout({ children }) {
     >
       <body className="flex min-h-screen flex-col bg-background text-foreground antialiased">
         <AuthProvider user={user ? { id: user.id, email: user.email } : null}>
-          <FavoriteProvider>
-            <Navbar />
+          {/* Kedua Provider ini wajib ada agar Contact dan Favorite tidak crash */}
+          <UserProvider>
+            <FavoriteProvider>
+              <Navbar />
 
-            <main className="flex-1">
-              {children}
-            </main>
+              <main className="flex-1">
+                {children}
+              </main>
 
-            <Footer />
-          </FavoriteProvider>
+              <Footer />
+            </FavoriteProvider>
+          </UserProvider>
         </AuthProvider>
       </body>
     </html>
