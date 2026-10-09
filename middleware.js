@@ -35,7 +35,7 @@ export function middleware(request) {
   // -------------------------------------------------------------------------------------//
   // Auth Guard Menggunakan Cookie (Untuk halaman /favorites)
   // -------------------------------------------------------------------------------------//
-  /*if (pathname.startsWith("/favorites")) {
+  *if (pathname.startsWith("/maintenance")) {
     const token = request.cookies.get("token");
 
     if (!token) {
@@ -43,7 +43,7 @@ export function middleware(request) {
       return NextResponse.redirect(new URL("/", request.url));
     }
   }
-*/
+
   // Lanjutkan request jika semua kondisi di atas lolos
   return NextResponse.next();
 }
