@@ -39,7 +39,7 @@ export default async function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`dark ${fontSans.variable}`}
+      className={`light ${fontSans.variable}`}
     >
       <body className="flex min-h-screen flex-col bg-background text-foreground antialiased">
         <AuthProvider user={user ? { id: user.id, email: user.email } : null}>

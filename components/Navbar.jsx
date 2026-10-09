@@ -34,7 +34,7 @@ export default function Navbar() {
           href="/"
           className="shrink-0 text-sm font-bold tracking-tight"
         >
-          MyWebsite
+          EduPuan
         </Link>
 
         <div className="hidden items-center gap-1 text-sm text-muted-foreground sm:flex">
