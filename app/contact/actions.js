@@ -1,3 +1,5 @@
+"use server";
+
 import { createClient } from "@/lib/supabase/server";   // ganti import
 
 export async function submitContactForm(formData) {

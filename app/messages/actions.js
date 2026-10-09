@@ -1,26 +1,28 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
+// Import disesuaikan menggunakan server client
+import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-// Ubah parameter menjadi formData
 export async function deleteMessageAction(formData) {
-  //ekstrak ID dari formData
-  const id = formData.get("id");
+  // 1. Panggil instance Supabase di dalam fungsi
+  const supabase = await createClient(); 
 
- if (!id) return;
+  // 2. Ambil ID pesan dari input form
+  const messageId = formData.get("id");
 
-  // Hapus data secara permanen dari Supabase
+  if (!messageId) return;
+
+  // 3. Eksekusi penghapusan database (Sesuaikan 'messages' dengan nama tabel aslimu)
   const { error } = await supabase
-    .from("messages")
+    .from("messages") 
     .delete()
-    .eq("id", id); // Hapus baris di mana kolom 'id' sama dengan id dari form
+    .eq("id", messageId);
 
   if (error) {
     console.error("Gagal menghapus pesan:", error.message);
-    return;
   }
-  
-  // Muat ulang halaman agar UI ter-update
+
+  // 4. Perbarui tampilan halaman setelah data dihapus
   revalidatePath("/messages");
 }

@@ -1,51 +1,59 @@
 import { connection } from "next/server";
-import { supabase } from "@/lib/supabase";
+// Import disesuaikan menggunakan server client
+import { createClient } from "@/lib/supabase/server";
 import { deleteMessageAction } from "./actions";
 
 export default async function MessagesPage() {
+  // Mengaktifkan rendering dinamis (bawaan Next.js versi terbaru)
   await connection();
 
+  // 1. Panggil instance Supabase di dalam komponen
+  const supabase = await createClient();
+
+  // 2. Ambil data dari tabel 'messages'
   const { data: messages, error } = await supabase
-    .from("messages")
+    .from("messages") 
     .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {
     return (
-      <section className="mx-auto max-w-3xl px-6 py-20">
-        <h1 className="text-3xl font-bold">Pesan Masuk</h1>
-        <p className="mt-8 text-red-600">Gagal memuat pesan: {error.message}</p>
-      </section>
+      <div className="p-6 text-red-500">
+        Gagal memuat pesan: {error.message}
+      </div>
     );
   }
 
   return (
-    <section className="mx-auto max-w-3xl px-6 py-20">
-      <h1 className="text-3xl font-bold">Pesan Masuk</h1>
-
-      <div className="mt-8 space-y-4">
-        {messages.length === 0 ? (
-          <p className="text-muted-foreground">Belum ada pesan masuk.</p>
-        ) : (
-          messages.map((msg) => (
-            <div key={msg.id} className="flex items-start justify-between gap-4 rounded-lg border p-4">
+    <div className="mx-auto max-w-3xl p-6">
+      <h1 className="mb-6 text-3xl font-bold">Daftar Pesan</h1>
+      
+      {!messages || messages.length === 0 ? (
+        <p className="text-muted-foreground">Belum ada pesan yang masuk.</p>
+      ) : (
+        <ul className="space-y-4">
+          {messages.map((msg) => (
+            <li key={msg.id} className="flex items-start justify-between rounded-lg border p-4 shadow-sm">
               <div>
-                <p className="font-medium">{msg.name} — {msg.email}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{msg.message}</p>
+                {/* Sesuaikan msg.name / msg.message dengan nama kolom di tabel database kamu */}
+                <p className="font-semibold">{msg.name || "Anonim"}</p>
+                <p className="mt-1 text-foreground">{msg.message}</p>
               </div>
+              
+              {/* Form penghapusan yang memanggil deleteMessageAction */}
               <form action={deleteMessageAction}>
                 <input type="hidden" name="id" value={msg.id} />
-                <button
-                  type="submit"
-                  className="rounded-md border border-red-300 px-3 py-1 text-sm text-red-600 hover:bg-red-50"
+                <button 
+                  type="submit" 
+                  className="rounded-md bg-destructive px-3 py-1.5 text-sm font-medium text-destructive-foreground hover:bg-destructive/90"
                 >
                   Hapus
                 </button>
               </form>
-            </div>
-          ))
-        )}
-      </div>
-    </section>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
