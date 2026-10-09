@@ -26,15 +26,15 @@ export default function FavoritesPage() {
 
         {favorites && favorites.length > 0 ? (
           <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {favorites.map((favorite) => {
-              // PENGECEKAN CERDAS:
-              // Menyesuaikan otomatis jika data berasal dari relasi join (app_users/users)
-              // ataupun data array langsung dari API.
+            {favorites.map((favorite, index) => {
+              // PENGECEKAN CERDAS: 
+              // Berjaga-jaga jika Supabase mengembalikan data relasi dengan nama berbeda 
+              // atau jika app_users bernilai 'null' akibat terblokir RLS
               const userData = favorite?.app_users || favorite?.users || favorite;
 
               return (
                 <UserCard
-                  key={userData?.id || favorite?.id || Math.random()}
+                  key={favorite?.id || index}
                   user={{
                     id: userData?.id || favorite?.user_id || "N/A",
                     name: userData?.name || "User Tidak Diketahui",
