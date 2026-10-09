@@ -1,68 +1,54 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { createContext, useContext, useState, useEffect } from "react";
 
-const FavoriteContext = createContext(undefined);
+// Import Supabase khusus untuk sisi Client.
+// Jika file client Supabase kamu bernama lain (misal: "@/lib/supabase"), silakan sesuaikan baris ini.
+import { createClient } from "@/lib/supabase/client";
+
+const FavoriteContext = createContext();
 
 export function FavoriteProvider({ children }) {
-  const { isLoggedIn } = useAuth();
   const [favorites, setFavorites] = useState([]);
+  const supabase = createClient();
 
+  // Fungsi utama untuk menarik data dari database
+  const fetchFavorites = async () => {
+    try {
+      // 📍 INI KUNCI PERBAIKANNYA: 
+      // Kita menambahkan ", app_users(*)" di dalam select().
+      // Perintah ini menyuruh Supabase untuk tidak hanya mengambil ID favorit, 
+      // tetapi juga menarik semua detail nama, email, dll dari tabel app_users.
+      const { data, error } = await supabase
+        .from("favorites")
+        .select("*, app_users(*)"); 
+
+      if (error) {
+        console.error("Gagal memuat favorites:", error.message);
+        return;
+      }
+
+      if (data) {
+        setFavorites(data);
+      }
+    } catch (err) {
+      console.error("Terjadi kesalahan sistem saat fetch:", err);
+    }
+  };
+
+  // Otomatis mengambil data ketika web pertama kali dimuat
   useEffect(() => {
-    if (!isLoggedIn) {
-      setFavorites([]);
-      return;
-    }
-
-    fetch("/api/favorites")
-      .then((res) => (res.ok ? res.json() : []))
-      .then(setFavorites);
-  }, [isLoggedIn]);
-
-  async function addFavorite(user) {
-    if (!isLoggedIn) {
-      alert("Silakan login terlebih dahulu untuk menambahkan favorite.");
-      return;
-    }
-
-    const res = await fetch("/api/favorites", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: user.id }),
-    });
-
-    if (res.ok) {
-      const saved = await res.json();
-      setFavorites((prev) => [...prev, saved]);
-    }
-  }
-
-  async function removeFavorite(userId) {
-    const res = await fetch(`/api/favorites/${userId}`, { method: "DELETE" });
-
-    if (res.ok) {
-      setFavorites((prev) => prev.filter((f) => f.user_id !== userId));
-    }
-  }
-
-  function isFavorite(userId) {
-    return favorites.some((f) => f.user_id === userId);
-  }
-
-  const value = { favorites, addFavorite, removeFavorite, isFavorite };
+    fetchFavorites();
+  }, []);
 
   return (
-    <FavoriteContext.Provider value={value}>
+    <FavoriteContext.Provider value={{ favorites, setFavorites, fetchFavorites }}>
       {children}
     </FavoriteContext.Provider>
   );
 }
 
+// Hook kustom agar komponen lain mudah menggunakan context ini
 export function useFavorite() {
-  const context = useContext(FavoriteContext);
-  if (context === undefined) {
-    throw new Error("useFavorite harus dipakai di dalam <FavoriteProvider>");
-  }
-  return context;
+  return useContext(FavoriteContext);
 }
