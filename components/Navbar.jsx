@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useUser } from "@/context/UserContext";
-
-// 📍 1. SISIPKAN DI SINI: Import custom hook dari FavoriteContext
-import { useFavorite } from "@/context/FavoriteContext";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext"; // ← baru
+import { useFavorite } from "@/context/FavoriteContext";
 
 const links = [
   { href: "/", label: "Beranda" },
@@ -20,10 +18,14 @@ const links = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { name, submitted } = useUser();
-
-// 📍 2. SISIPKAN DI SINI: Ambil array favorites dari Context
+  const { isLoggedIn } = useAuth(); // ← baru
   const { favorites } = useFavorite();
+
+  // Menu Favorite baru muncul setelah ada user yang difavoritkan
+  const navLinks =
+    favorites.length > 0
+      ? [...links, { href: "/favorites", label: `Favorite (${favorites.length})` }]
+      : links;
 
   return (
     <header className="sticky top-4 z-50 mx-auto w-full max-w-4xl px-4">
@@ -32,11 +34,11 @@ export default function Navbar() {
           href="/"
           className="shrink-0 text-sm font-bold tracking-tight"
         >
-          EduPuan
+          MyWebsite
         </Link>
 
         <div className="hidden items-center gap-1 text-sm text-muted-foreground sm:flex">
-          {links.map((link) => {
+          {navLinks.map((link) => {
             const isActive =
               link.href === "/"
                 ? pathname === "/"
@@ -55,29 +57,29 @@ export default function Navbar() {
               </Link>
             );
           })}
-
-          {/* 📍 3. SISIPKAN DI SINI: Menu Favorite yang dinamis jumlahnya */}
-          <Link
-            href="/favorites"
-            className={cn(
-              "rounded-full px-3 py-1.5 font-medium transition-colors hover:text-foreground",
-              pathname === "/favorites" && "bg-foreground/10 text-foreground",
-              favorites.length > 0 && "text-primary" // Opsional: Beri warna khusus jika ada favorit
-            )}
-          >
-            Favorite ({favorites.length})
-          </Link>
-       
         </div>
 
-        {submitted && <span className="shrink-0 text-sm font-medium">Hi, {name} 👋</span>}
-        
-        <Link
-          href="/contact"
-          className={cn(buttonVariants({ size: "sm" }), "shrink-0 rounded-full")}
-        >
-          DARURAT
-        </Link>
+        {/* ← tombol "Get in touch" diganti dengan Login / Logout */}
+        {isLoggedIn ? (
+          <form action="/auth/signout" method="post">
+            <button
+              type="submit"
+              className={cn(
+                buttonVariants({ size: "sm", variant: "outline" }),
+                "rounded-full"
+              )}
+            >
+              Logout
+            </button>
+          </form>
+        ) : (
+          <Link
+            href="/login"
+            className={cn(buttonVariants({ size: "sm" }), "rounded-full")}
+          >
+            Login
+          </Link>
+        )}
       </nav>
     </header>
   );
