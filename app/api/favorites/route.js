@@ -1,24 +1,24 @@
-import { getAllFavorites, addFavorite } from "@/lib/services/favoriteService";
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
-    return Response.json(await getAllFavorites());
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
-  }
-}
+    const supabase = await createClient();
 
-export async function POST(request) {
-  try {
-    const body = await request.json();
-    const result = await addFavorite(body);
+    // 📍 INI KUNCI UTAMANYA: Tambahkan relasi ke app_users
+    const { data, error } = await supabase
+      .from("favorites")
+      .select("*, app_users(*)"); 
 
-    if (!result.success) {
-      return Response.json({ error: result.error }, { status: result.status });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return Response.json(result.data, { status: result.status });
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data || []);
+  } catch (err) {
+    console.error("Error di API Favorites:", err);
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 });
   }
 }
+
+// (Biarkan fungsi POST() di bawahnya tetap seperti aslinya, jangan dihapus)
