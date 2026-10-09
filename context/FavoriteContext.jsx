@@ -13,6 +13,8 @@ export function FavoriteProvider({ children }) {
     let isMounted = true;
 
     if (!isLoggedIn) {
+      // Solusi ESLint: Menunda pemanggilan setState ke akhir antrean eksekusi
+      // agar tidak memicu render beruntun (cascading renders) yang dilarang React.
       const timeoutId = setTimeout(() => {
         if (isMounted) setFavorites([]);
       }, 0);
@@ -24,52 +26,10 @@ export function FavoriteProvider({ children }) {
 
     const loadFavorites = async () => {
       try {
-        // 1. Ambil daftar ID yang difavoritkan dari database Supabase
-        const favRes = await fetch("/api/favorites");
-        const favData = favRes.ok ? await favRes.json() : [];
-
-        if (favData.length === 0) {
-          if (isMounted) setFavorites([]);
-          return;
-        }
-
-        // 2. Ambil profil user lengkap dari API /api/users yang sudah terbukti berfungsi
-        let allUsers = [];
-        try {
-          const userRes = await fetch("/api/users");
-          if (userRes.ok) allUsers = await userRes.json();
-        } catch (err) {
-          console.error("Gagal memuat /api/users", err);
-        }
-
-        // 3. (Cadangan Tambahan) Jika /api/users kosong, pinjam dari API eksternal
-        if (allUsers.length === 0) {
-          const extRes = await fetch("https://jsonplaceholder.typicode.com/users");
-          if (extRes.ok) allUsers = await extRes.json();
-        }
-
-        // 4. MENGAKALI RLS SUPABASE: Gabungkan datanya secara manual di sini
-        const enrichedFavorites = favData.map((fav) => {
-          // Cari user yang ID-nya cocok (diubah ke String agar kebal terhadap tipe data)
-          const matchedUser = allUsers.find(
-            (u) => String(u.id) === String(fav.user_id)
-          );
-
-          return {
-            ...fav,
-            app_users: matchedUser
-              ? {
-                  id: matchedUser.id,
-                  name: matchedUser.name,
-                  email: matchedUser.email,
-                  company_name: matchedUser.company?.name || matchedUser.company_name || "-",
-                }
-              : (fav.app_users || null),
-          };
-        });
-
-        if (isMounted) {
-          setFavorites(enrichedFavorites);
+        const res = await fetch("/api/favorites");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) setFavorites(data);
         }
       } catch (error) {
         console.error("Gagal mengambil data favorites:", error);
@@ -98,6 +58,8 @@ export function FavoriteProvider({ children }) {
 
       if (res.ok) {
         const saved = await res.json();
+        
+        // Membentuk struktur data yang sama persis dengan kembalian dari Supabase
         const newFavorite = {
           ...saved,
           app_users: {
@@ -105,7 +67,7 @@ export function FavoriteProvider({ children }) {
             name: user.name,
             email: user.email,
             company_name: user.company?.name || user.company_name || "-",
-          },
+          }
         };
         setFavorites((prev) => [...prev, newFavorite]);
       }
@@ -118,7 +80,7 @@ export function FavoriteProvider({ children }) {
     try {
       const res = await fetch(`/api/favorites/${userId}`, { method: "DELETE" });
       if (res.ok) {
-        setFavorites((prev) => prev.filter((f) => String(f.user_id) !== String(userId)));
+        setFavorites((prev) => prev.filter((f) => f.user_id !== userId));
       }
     } catch (error) {
       console.error("Gagal menghapus favorite:", error);
@@ -126,13 +88,13 @@ export function FavoriteProvider({ children }) {
   }
 
   function isFavorite(userId) {
-    return favorites.some((f) => String(f.user_id) === String(userId));
+    return favorites.some((f) => f.user_id === userId);
   }
 
+  const value = { favorites, addFavorite, removeFavorite, isFavorite };
+
   return (
-    <FavoriteContext.Provider
-      value={{ favorites, addFavorite, removeFavorite, isFavorite }}
-    >
+    <FavoriteContext.Provider value={value}>
       {children}
     </FavoriteContext.Provider>
   );
